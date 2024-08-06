@@ -53,11 +53,10 @@ exports.login = (req, res, next) => {
             });
           }
           const userid = user._id;
-          const date = Date.now()
-          const validityDate = Date.now()
-          validityDate.setHours(validityDate.getHours() + 1);
+          const date = Date.now();
+          const validityDate = date + 3600 * 1000;
           const expires = { expiresIn: "1h" };
-          const token = jwt.sign({ userId: userid }, date.toString() , {
+          const token = jwt.sign({ userId: userid }, date.toString(), {
             expiresIn: "1h",
           });
           const session = new Session({
@@ -66,12 +65,8 @@ exports.login = (req, res, next) => {
             start: date,
             expires: validityDate,
           });
-          session.save()
-          
-
+          session.save();
           console.log("userid : " + userid);
-          //console.log("token " + token);
-          //console.log("expires " + expires);
           return res.status(200).json({
             userId: userid,
             email: user.email,
