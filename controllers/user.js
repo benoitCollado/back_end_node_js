@@ -13,7 +13,7 @@ exports.signup = (req, res, next) => {
         email: req.body.email,
         password: hash,
       });
-      console.log(user);
+      //console.log(user);
       user
         .save()
         .then(() => {
@@ -36,54 +36,83 @@ exports.signup = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
-  console.log(req.socket.remoteAddress);
-  User.findOne({ email: req.body.email })
-    .then((user) => {
-      if (!user) {
-        return res.status(401).json({
-          error: "Authentication failed. Wrong user, password combinaison.",
-        });
-      }
-      bcrypt
-        .compare(req.body.password, user.password)
-        .then((valid) => {
-          if (!valid) {
-            return res.status(401).json({
-              message: "pair login/mot de pass incorrecte",
-            });
-          }
-          const userid = user._id;
-          const date = Date.now();
-          const validityDate = date + 3600 * 1000;
-          const expires = { expiresIn: "1h" };
-          const token = jwt.sign({ userId: userid }, date.toString(), {
-            expiresIn: "1h",
-          });
-          const session = new Session({
-            userid: userid,
-            session_token: token,
-            start: date,
-            expires: validityDate,
-          });
+  //console.log(req.socket.remoteAddress);
+  let abort = false;
+  Session.findOne({ session_token: req.body.session_token })
+    .then((session) => {
+      //console.log(session);
+      if (session) {
+        //console.log("ici");
+        //console.log(session.isExpired());
+        if (!session.isExpired()) {
+          session.expires = Date.now() + 300 * 1000;
+          //console.log("là");
           session.save();
-          console.log("userid : " + userid);
+          abort = true;
           return res.status(200).json({
-            userId: userid,
-            email: user.email,
-            token: token,
+            message: "Session found",
+            token: session.session_token,
           });
-        })
-        .catch((error) => {
-          res.status(500).json({
-            error: error,
-            status: "stop not in time",
+        }
+      }
+    })
+    .then(() => {
+      if (!abort) {
+        User.findOne({ email: req.body.email })
+          .then((user) => {
+            if (!user) {
+              return res.status(401).json({
+                error:
+                  "Authentication failed. Wrong user, password combinaison.",
+              });
+            }
+            bcrypt
+              .compare(req.body.password, user.password)
+              .then((valid) => {
+                if (!valid) {
+                  return res.status(401).json({
+                    message: "pair login/mot de pass incorrecte",
+                  });
+                }
+                const userid = user._id;
+                const date = Date.now();
+                const validityDate = date + 300 * 1000;
+                const expires = { expiresIn: "1h" };
+                const token = jwt.sign({ userId: userid }, date.toString(), {
+                  expiresIn: "1h",
+                });
+                const session = new Session({
+                  userid: userid,
+                  session_token: token,
+                  start: date,
+                  expires: validityDate,
+                });
+                session.save();
+                //console.log("userid : " + userid);
+                return res.status(200).json({
+                  userId: userid,
+                  token: token,
+                });
+              })
+              .catch((error) => {
+                return res.status(500).json({
+                  error: error,
+                  status: "stop not in time",
+                });
+              });
+          })
+          .catch((error) => {
+            return res.status(500).json({
+              error: error,
+              status: "stop in time",
+            });
           });
-        });
+      }
     })
     .catch((error) => {
-      res.status(500).json({
+      return res.status(500).json({
         error: error,
-        status: "stop in time",
+        status: "stop session",
       });
     });
 };
