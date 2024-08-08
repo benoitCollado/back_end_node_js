@@ -77,3 +77,33 @@ exports.addUser = (req, res, next) => {
     })
   });
 };
+
+exports.modifyUser = (req, res, next) => {
+  JobContract.findOneAndUpdate({entity: req.body.entity, userid: req.body.userid}, {startDate: req.body.startDate, endDate: req.body.endDate, hourCost: req.body.hourCost, role: req.body.role})
+  .then((user)=>{
+    return res.status(200).json({
+      user: user,
+    });
+  })
+  .catch((error)=>{
+    return res.status(500).json({
+      error: error,
+      message: "can't update user"
+  });
+  
+};
+
+exports.deleteUser = (req, res, next) => {
+    JobContract.findOneAndUpdate({entity: req.body.entity, userid: req.body.userid}, {status:"deletes"})
+    .then((user)=>{
+      return res.status(200).json({
+        user: user,
+      });
+    })
+    .catch((error)=>{
+      return res.status(500).json({
+        error: error,
+        message: "can't delete user"
+    });
+
+  };
