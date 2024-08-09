@@ -1,4 +1,5 @@
 const jwt = require("jsonwebtoken");
+const Session = require("../models/session");
 
 module.exports = (req, res, next) => {
   Session.findOne({ session_token: req.body.session_token })

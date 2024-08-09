@@ -5,7 +5,7 @@ const Session = require("../models/session");
 const JobContract = require("../models/jobContract");
 
 exports.getUsers = (req, res, next) => {
-  JobContract.find({entity: req.body.entity})
+  JobContract.find({entity: req.params.entity})
   .then((users)=>{
     return res.status(200).json({
       users: users,
@@ -20,7 +20,7 @@ exports.getUsers = (req, res, next) => {
 };
 
 exports.getUser = (req, res, next) => {
-  JobContract.findOne({entity: req.body.entity, userid: req.body.userid})
+  JobContract.findOne({entity: req.params.entity, userid: req.params.id})
   .then((user)=>{
     return res.status(200).json({
       user: user,
@@ -41,7 +41,7 @@ exports.addUser = (req, res, next) => {
     if (user) {
       find = true;
       let entity = null;
-      Entity.findOne({name: req.body.entity})
+      Entity.findOne({name: req.params.entity})
       .then(entityObj => {
         entity = entityObj;
       })
@@ -79,7 +79,7 @@ exports.addUser = (req, res, next) => {
 };
 
 exports.modifyUser = (req, res, next) => {
-  JobContract.findOneAndUpdate({entity: req.body.entity, userid: req.body.userid}, {startDate: req.body.startDate, endDate: req.body.endDate, hourCost: req.body.hourCost, role: req.body.role})
+  JobContract.findOneAndUpdate({entity: req.params.entity, userid: req.params.userid}, {startDate: req.body.startDate, endDate: req.body.endDate, hourCost: req.body.hourCost, role: req.body.role})
   .then((user)=>{
     return res.status(200).json({
       user: user,
@@ -94,7 +94,7 @@ exports.modifyUser = (req, res, next) => {
 };
 
 exports.deleteUser = (req, res, next) => {
-    JobContract.findOneAndUpdate({entity: req.body.entity, userid: req.body.userid}, {status:"deletes"})
+    JobContract.findOneAndUpdate({entity: req.params.entity, userid: req.params.id}, {status:"deletes"})
     .then((user)=>{
       return res.status(200).json({
         user: user,
